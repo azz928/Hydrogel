@@ -1,71 +1,78 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>하이드로젤 구조와 팽윤 시뮬레이터</title>
+<title>하이드로젤 설계 | 수분 포집·저장 소재 탐구</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1422;--p:#14243a;--line:#30445c;--tx:#edf5ff;--muted:#b2c2d4;--cyan:#65d8e8;--gold:#f2cb7b}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(145deg,#091321,#11283a);color:var(--tx);font:16px/1.7 system-ui,"Noto Sans KR",sans-serif}header,main,footer{max-width:1050px;margin:auto;padding:25px}header{padding-top:48px;padding-bottom:28px}.eyebrow{color:var(--cyan);letter-spacing:.13em;font-size:.8rem;font-weight:bold}h1{font-size:clamp(2rem,5vw,3rem);line-height:1.2;margin:.5em 0}h2{font-size:1.45rem;margin:0 0 12px}h3{font-size:1.05rem;margin:0 0 6px}p{margin:.5em 0}.muted,.hint,footer{color:var(--muted)}nav{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 22px}nav a{color:var(--muted);border:1px solid var(--line);border-radius:30px;padding:6px 12px;text-decoration:none;font-size:.88rem}section{background:#14243aeF;border:1px solid var(--line);border-radius:17px;padding:24px;margin:20px 0}.tag{color:var(--cyan);font-size:.8rem;font-weight:bold}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.three{grid-template-columns:repeat(3,minmax(0,1fr))}.tile{background:#1a3049;border:1px solid var(--line);padding:16px;border-radius:13px}.tile p{color:var(--muted);font-size:.94rem}.formula,.notice{background:#0b1929;border-left:3px solid var(--cyan);padding:13px 16px;border-radius:8px;margin:14px 0}.notice{border-color:var(--gold);color:#f5e7c8}.sim{display:grid;grid-template-columns:310px 1fr;gap:15px}.control{margin:15px 0}.control label{display:flex;justify-content:space-between;font-weight:650}.control output{color:var(--cyan)}input{width:100%;accent-color:var(--cyan)}button{background:#17445a;color:white;border:1px solid #438099;border-radius:9px;padding:9px 14px;cursor:pointer}.visual{background:#091726;border:1px solid var(--line);border-radius:12px;padding:10px}.visual svg{width:100%;height:auto}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.stat{background:#1a3049;border-radius:10px;padding:10px}.stat small{display:block;color:var(--muted)}.stat strong{color:var(--cyan);font-size:1.15rem}.bar{height:7px;background:#30445c;border-radius:9px;margin-top:6px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,#78aaff,#65d8e8)}li{margin:8px 0;overflow-wrap:anywhere}a{color:var(--cyan)}.small{font-size:.84rem;color:var(--muted)}
-@media(max-width:760px){.sim,.grid,.three{grid-template-columns:1fr}.stats{grid-template-columns:1fr 1fr 1fr}section{padding:18px}}@media(max-width:420px){.stats{grid-template-columns:1fr}}
+:root{--ink:#19323b;--muted:#58717a;--bg:#f3f8f7;--paper:#fff;--teal:#167d78;--mint:#d9efea;--line:#d7e5e2}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;line-height:1.7}
+header{padding:60px 22px;background:linear-gradient(135deg,#123e49,#167d78);color:white}.wrap{max-width:960px;margin:auto;padding:0 20px}
+.eyebrow{letter-spacing:.15em;font-size:.8rem;opacity:.8}h1{font-size:clamp(2rem,5vw,3.3rem);line-height:1.25;margin:14px 0}header p{max-width:680px;color:#e0f1ee}
+nav{position:sticky;top:0;background:#ffffffed;border-bottom:1px solid var(--line);z-index:4}nav .wrap{display:flex;gap:18px;overflow:auto;padding-top:12px;padding-bottom:12px;white-space:nowrap}nav a{color:var(--muted);text-decoration:none;font-size:.9rem}
+main{padding:32px 0 65px}.section{background:white;border:1px solid var(--line);border-radius:18px;padding:clamp(20px,4vw,32px);margin-bottom:20px;box-shadow:0 8px 28px #19323b08}
+.kicker{color:var(--teal);font-weight:750;font-size:.78rem;letter-spacing:.08em}h2{font-size:1.5rem;margin:.2rem 0 1rem}h3{font-size:1.05rem;margin:1.25rem 0 .35rem}
+p{margin:.55rem 0}.lead{font-size:1.07rem;color:#34545d}.tag{display:inline-block;background:var(--mint);color:#155e5a;border-radius:99px;padding:3px 10px;font-size:.8rem;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:13px}.mini{background:#f5faf9;border:1px solid var(--line);border-radius:13px;padding:15px}
+.note{background:#eff7f5;border-left:4px solid var(--teal);padding:13px 16px;border-radius:8px;margin:15px 0}
+.formula{text-align:center;background:#f5faf9;padding:15px;border-radius:12px;font:1.4rem Georgia,serif;margin:14px 0}
+.flow{display:flex;gap:9px;align-items:center;justify-content:center;flex-wrap:wrap;margin:18px 0}.step{padding:11px 14px;border:1px solid #b9d9d2;background:#f0f8f6;border-radius:12px;text-align:center;font-weight:650}.arrow{color:var(--teal);font-size:1.25rem}
+.sim{background:#f5faf9;border:1px solid var(--line);border-radius:15px;padding:18px}.control{display:grid;grid-template-columns:1fr auto;gap:7px;align-items:center;margin:15px 0}.control label{font-weight:650}.control input{grid-column:1/3;width:100%;accent-color:var(--teal)}
+output,.result{color:var(--teal);font-weight:750}.visual{height:205px;border-radius:12px;background:linear-gradient(#eaf7f6,#d7efed);position:relative;overflow:hidden;margin:16px 0;border:1px solid #c8e3df}
+.gel{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:var(--gw,150px);height:var(--gh,105px);border:3px solid #218f8a;border-radius:22px;background:radial-gradient(circle at 30% 25%,#ffffffb8,transparent 35%),#70c8bf88;transition:width .2s,height .2s}
+.gel:before,.gel:after{content:"";position:absolute;inset:20%;border:2px solid #187b78;border-radius:30%;transform:rotate(35deg)}.gel:after{transform:rotate(-35deg)}
+.drop{position:absolute;width:9px;height:13px;background:#3e9fce;border-radius:60% 60% 65% 15%;transform:rotate(-45deg);opacity:.75;animation:float 2.8s infinite ease-in-out}
+.drop:nth-child(2){left:17%;top:28%}.drop:nth-child(3){left:78%;top:22%;animation-delay:.5s}.drop:nth-child(4){left:24%;top:72%;animation-delay:1s}.drop:nth-child(5){left:82%;top:69%;animation-delay:1.4s}
+@keyframes float{50%{transform:translateY(17px) rotate(-45deg);opacity:.35}}
+.small{font-size:.88rem;color:var(--muted)}.source{overflow-wrap:anywhere;font-size:.9rem}footer{text-align:center;color:var(--muted);padding:25px;font-size:.85rem}
+@media(max-width:600px){header{padding:42px 0}.section{border-radius:14px}}
 </style></head><body>
-<header><div class="eyebrow">MATERIALS SCIENCE · BIOINSPIRED HYDROGEL</div>
-<h1>하이드로젤의 구조와<br>수분 흡수·저장 원리</h1>
-<p class="muted">친수성 고분자 네트워크의 팽윤 원리를 이해하고, 가교 밀도와 외부 염 농도를 조절해 이론적 경향을 탐색하는 인터랙티브 탐구 페이지입니다.</p></header>
-<main><nav><a href="#intro">탐구 배경</a><a href="#structure">분자 구조</a><a href="#principle">흡수 원리</a><a href="#sim">시뮬레이터</a><a href="#bio">생체모방</a><a href="#design">소재 설계</a><a href="#refs">참고 자료</a></nav>
-<section id="intro"><div class="tag">01 · 탐구 배경</div><h2>왜 하이드로젤을 탐구하는가?</h2>
-<p>리포솜 등 생체재료를 조사하는 과정에서 하이드로젤을 접하고, 고분자의 분자 구조와 물리·화학적 상호작용이 소재의 기능을 어떻게 결정하는지에 관심을 갖게 되었다. 하이드로젤은 물을 흡수하면서도 고분자 네트워크를 유지하는 소재로 약물 전달과 의료용 소재 등에서 연구된다.</p>
-<div class="grid three"><div class="tile"><h3>물리학</h3><p>삼투압, 표면장력, 모세관 현상, 고분자 네트워크의 탄성</p></div><div class="tile"><h3>화학</h3><p>친수성 작용기, 수소 결합, 이온화, 가교 결합</p></div><div class="tile"><h3>생명과학</h3><p>생체재료, 생체모방, 조직과 접촉하는 기능성 소재</p></div></div></section>
-<section id="structure"><div class="tag">02 · 구조 이해</div><h2>하이드로젤은 무엇으로 이루어져 있을까?</h2><div class="grid">
-<div class="tile"><h3>친수성 고분자 사슬</h3><p>반복되는 단량체가 연결된 긴 분자 사슬이다. 하이드록실기(-OH), 카복실기(-COOH), 아마이드기(-CONH₂) 등은 물 분자와 수소 결합이나 극성 상호작용을 형성할 수 있다.</p></div>
-<div class="tile"><h3>가교 결합</h3><p>서로 다른 고분자 사슬을 연결해 3차원 망상 구조를 만든다. 네트워크는 형태를 유지하면서 물을 내부에 보유한다.</p></div></div>
-<div class="formula"><b>폴리아크릴산(PAA)의 반복단위 예시</b><br>[-CH₂-CH(COOH)-]ₙ<br><span class="small">카복실기(-COOH)는 조건에 따라 -COO⁻로 이온화될 수 있다.</span></div>
-<p class="small">개념 구분: 물이 표면에 모이는 것은 흡착, 소재 내부로 들어가는 것은 흡수이다. 팽윤은 물이 네트워크 내부로 유입되어 부피가 증가하는 현상이다.</p></section>
-<section id="principle"><div class="tag">03 · 작동 원리</div><h2>물이 들어오면 왜 부풀어 오를까?</h2><div class="grid">
-<div class="tile"><h3>① 물과의 상호작용</h3><p>친수성 작용기는 물 분자와 수소 결합 및 극성 상호작용을 형성한다. 이는 물이 고분자 네트워크와 섞이는 데 기여한다.</p></div>
-<div class="tile"><h3>② 이온에 의한 삼투 효과</h3><p>이온성 고분자에서는 -COOH가 -COO⁻로 이온화될 수 있다. 고정 전하와 이동 이온의 분포 차이는 네트워크 내부로 물이 유입되는 데 기여한다.</p></div>
-<div class="tile"><h3>③ 고분자 탄성의 저항</h3><p>네트워크가 늘어나면 고분자 사슬은 원래 상태로 돌아가려는 탄성적 저항을 나타내며, 팽창을 제한한다.</p></div>
-<div class="tile"><h3>④ 팽윤 평형</h3><p>물의 유입을 촉진하는 혼합·삼투 효과와 네트워크의 탄성 저항이 균형을 이루면 평형 팽윤 상태에 도달한다.</p></div></div>
-<div class="formula"><b>단순 원통형 모세관의 압력차</b><br>ΔP = 2γ cosθ / r<br><span class="small">γ: 표면장력, θ: 접촉각, r: 모세관 반지름. 미세 기공에서 물의 초기 침투·이동을 설명하는 관계이며, 모든 하이드로젤의 팽윤을 단독으로 설명하지는 않는다.</span></div>
-<div class="formula"><b>팽윤비 정의</b><br>Q = (m<sub>s</sub> − m<sub>d</sub>) / m<sub>d</sub><br><span class="small">m<sub>s</sub>: 팽윤 후 질량, m<sub>d</sub>: 건조 질량. 아래 시뮬레이터는 실제 질량을 계산하는 실험 도구가 아니라 변수의 영향 방향을 보여주는 개념 모델이다.</span></div></section>
-<section id="sim"><div class="tag">04 · 인터랙티브 모델</div><h2>조건을 바꾸면 네트워크의 팽윤은 어떻게 달라질까?</h2><p class="muted">조절값을 움직여 고분자 네트워크의 개념적 변화를 관찰하세요.</p>
-<div class="sim"><div class="tile">
-<div class="control"><label for="cross">가교 밀도 <output id="co">40%</output></label><input id="cross" type="range" min="10" max="90" value="40"><div class="small">높을수록 사슬 사이 연결이 많아져 팽창이 제한되는 경향</div></div>
-<div class="control"><label for="salt">외부 염 농도 <output id="so">20%</output></label><input id="salt" type="range" min="0" max="100" value="20"><div class="small">이온성 젤에서 염 농도가 높아지면 삼투 효과가 약해지는 경향</div></div>
-<div class="control"><label for="hydro">친수성 작용기 지표 <output id="ho">70%</output></label><input id="hydro" type="range" min="10" max="100" value="70"><div class="small">물과 상호작용할 수 있는 작용기의 상대적 비율을 나타내는 가상 지표</div></div>
-<button id="reset">초기값으로</button></div>
-<div><div class="visual"><svg id="network" viewBox="0 0 520 270" role="img" aria-label="가교된 고분자 네트워크 개념도"></svg></div>
-<div class="stats"><div class="stat"><small>상대 팽윤 지수</small><strong id="swelling">—</strong><div class="bar"><span id="sb"></span></div></div><div class="stat"><small>네트워크 구속</small><strong id="constraint">—</strong><div class="bar"><span id="cb"></span></div></div><div class="stat"><small>모델 상태</small><strong id="state">—</strong><small id="statehint">—</small></div></div><p class="small" id="interp" aria-live="polite"></p></div></div>
-<div class="notice"><b>모델의 한계:</b> 상대 팽윤 지수는 변수의 영향을 직관적으로 보여주기 위해 만든 정규화된 개념 지표입니다. 실제 Flory–Rehner 이론을 수치적으로 푼 결과나 특정 소재의 예측값이 아닙니다. 실제 팽윤은 고분자 종류, 용매 상호작용, 이온화도, 온도, 가교 방식 등에도 좌우됩니다.</div></section>
-<section id="bio"><div class="tag">05 · 생체모방 확장</div><h2>거미줄의 나노구획구조를 모방한 기능성 하이드로젤</h2>
-<p>기존 탐구에서 살펴본 연구 사례는 거미줄의 구조적 특징에서 착안해 하이드로젤에 역동적인 나노구획구조를 구현하려는 접근이다. 이는 물을 많이 흡수하는 것만이 아니라 부드러움·인성·자가치유 등 여러 물성을 함께 설계하는 방향을 보여준다.</p>
-<div class="grid"><div class="tile"><h3>탄닌산과 가역적 수소 결합</h3><p>탄닌산은 여러 수산기를 가진 폴리페놀이다. 고분자와 형성하는 수소 결합은 조건에 따라 끊어지고 다시 형성될 수 있으며, 동적 상호작용은 에너지 소산과 자가치유에 기여할 수 있다.</p></div>
-<div class="tile"><h3>인성과 자가치유</h3><p>인성은 재료가 파괴되기 전까지 흡수할 수 있는 에너지와 관련된 성질이다. 단순히 단단한 것과 다르며, 동적 결합은 손상 후 구조 회복에 기여할 수 있다.</p></div>
-<div class="tile"><h3>비팽창성</h3><p>물에 노출되어도 부피가 크게 증가하지 않도록 설계된 특성이다. 용도에 따라 팽윤 억제도 중요한 설계 목표가 된다.</p></div>
-<div class="tile"><h3>전기적·의료적 응용 가능성</h3><p>전기전도성 하이드로젤은 수중 근전도 신호 검출이나 체내 액체 상태 모니터링 등 생체신호 측정 소재로 연구될 수 있다.</p></div></div>
-<p class="small">거미줄 구조를 모방한 기능성 하이드로젤 사례와 기본 하이드로젤의 팽윤 원리는 구분해야 한다. 모든 하이드로젤이 같은 나노구획구조를 갖는다는 뜻은 아니다.</p></section>
-<section id="design"><div class="tag">06 · 소재 설계</div><h2>목표에 따라 구조를 어떻게 설계할까?</h2><div class="grid">
-<div class="tile"><h3>물을 많이 저장하는 소재</h3><p>친수성·이온성 작용기와 가교 밀도를 함께 고려하되, 지나친 팽윤으로 형태가 무너지지 않는 조건을 찾아야 한다.</p></div>
-<div class="tile"><h3>형태를 오래 유지하는 소재</h3><p>기계적·치수 안정성이 중요하다. 가교 구조를 강화하거나 팽윤을 억제할 수 있지만 수분 흡수량은 감소할 수 있다.</p></div>
-<div class="tile"><h3>자가치유 기능이 필요한 소재</h3><p>가역적인 수소 결합 등 동적 결합을 활용할 수 있다. 실제 사용 환경에서의 강도와 회복 속도도 고려해야 한다.</p></div>
-<div class="tile"><h3>종합 결론</h3><p>최적의 하이드로젤은 흡수량 하나로 결정되지 않는다. 용도에 따라 팽윤성, 탄성, 인성, 형태 안정성, 전기적 기능 사이의 균형을 설계해야 한다.</p></div></div></section>
-<section id="refs"><div class="tag">07 · 참고 자료</div><h2>참고 자료 및 읽을거리</h2><ol>
-<li>사토 겐타로, <i>세계사를 바꾼 12가지 신소재</i>.</li>
-<li><a href="https://www.dongascience.com/ko/news/60308" target="_blank" rel="noopener">동아사이언스, 거미줄 나노구획구조를 모방한 다기능성 하이드로젤 관련 기사</a>.</li>
-<li><a href="https://scienceon.kisti.re.kr/srch/selectPORSrchArticle.do?cn=DIKO0016626704" target="_blank" rel="noopener">ScienceON: 「생체접착제로 적용하기 위한 다기능성 하이드로겔 개발」 자료</a>. 서지사항은 원문 확인 필요.</li>
-<li><a href="http://www.softmaterials.co.kr/hydrogel/" target="_blank" rel="noopener">Soft Materials – Hydrogel</a>.</li>
-<li><a href="https://www.mysimulator.uk/materials-science/hydrogel-swelling/sim.html" target="_blank" rel="noopener">Hydrogel Swelling Dynamics Simulation</a>. 사이트의 모델 가정과 기능을 확인하며 활용.</li></ol>
-<div class="notice">자료를 보고서에 인용할 때는 저자·발행연도·논문명·학술지 정보를 원문에서 확인하세요. 이 페이지의 시뮬레이터 결과는 자체 제작한 개념 모델이며, 참고 자료의 실험 결과가 아닙니다.</div></section>
-</main><footer>학습·탐구용 개념 시뮬레이터 · 수치 결과는 실제 물성 측정값이 아닌 정성적 경향을 설명하기 위한 모델입니다.</footer>
+<header><div class="wrap"><div class="eyebrow">MATERIALS SCIENCE · EXPLORATION</div>
+<h1>생체모방 구조와<br>친수성 고분자를 활용한 하이드로젤 설계</h1>
+<p>하이드로젤의 3차원 망상 구조와 수분 흡수 원리를 살펴보고, 거미줄의 나노구획구조를 모방한 기능성 하이드로젤 연구 사례를 탐구한다.</p><span class="tag">수분 포집·저장 소재 탐구</span></div></header>
+<nav><div class="wrap"><a href="#start">탐구의 출발점</a><a href="#structure">구조</a><a href="#types">종류와 활용</a><a href="#principle">흡수 원리</a><a href="#simulation">개념 시뮬레이터</a><a href="#bio">생체모방</a><a href="#sources">참고 자료</a></div></nav>
+<main class="wrap">
+<section class="section" id="start"><div class="kicker">01 · BACKGROUND</div><h2>탐구의 출발점</h2>
+<p class="lead">기존에 세포와 물질대사 활동에서 조사했던 리포솜 소재를 살펴보던 중 하이드로젤을 접하고, 그 구조와 수분 보유 원리를 더 자세히 알아보고자 탐구를 진행하였다.</p>
+<p>소재의 특성은 원자·분자 구조와 물리적·화학적 상호작용에 의해 결정된다. 이에 물리학·화학·생명과학의 관점을 연결하여 하이드로젤의 수분 흡수 원리를 이해하고, 거미의 나노구획구조를 분석해 생체모방형 복합 소재의 설계 가능성을 살펴보았다.</p></section>
+<section class="section" id="structure"><div class="kicker">02 · STRUCTURE</div><h2>하이드로젤의 구조</h2>
+<p>하이드로젤은 친수성 고분자 사슬이 서로 연결되어 형성된 <b>3차원 망상 구조</b> 안에 물을 보유하는 소재이다. 고분자 사슬 사이의 연결인 <b>가교 결합</b>은 사슬이 물속에 흩어지는 것을 막고 망상 구조를 유지하도록 한다.</p>
+<div class="grid"><div class="mini"><span class="tag">친수성 고분자 사슬</span><p>물과 상호작용하며 수분을 받아들이는 고분자 사슬</p></div><div class="mini"><span class="tag">가교 결합</span><p>고분자 사슬 사이를 연결하여 망상 구조가 유지되도록 하는 결합</p></div><div class="mini"><span class="tag">3차원 망상 구조</span><p>연결된 사슬 사이의 공간에 물을 보유하는 구조</p></div></div></section>
+<section class="section" id="types"><div class="kicker">03 · TYPES & USES</div><h2>하이드로젤의 종류와 활용 분야</h2>
+<p>하이드로젤은 다양한 종류와 사용 분야를 가진 소재이다. 이번 탐구에서는 특정 종류를 비교하기보다, 물을 보유하는 망상 구조와 팽윤 원리, 그리고 생체모방 구조를 활용한 기능성 하이드로젤 연구에 초점을 맞추었다.</p></section>
+<section class="section" id="principle"><div class="kicker">04 · WATER ABSORPTION</div><h2>물리적 흡수 원리</h2>
+<p>하이드로젤의 수분 흡수는 물의 초기 이동, 고분자 망상 구조 내부로의 유입과 팽윤, 그리고 팽창을 억제하는 힘 사이의 균형으로 설명할 수 있다.</p>
+<div class="flow"><div class="step">모세관 현상<br><small>초기 이동</small></div><div class="arrow">→</div><div class="step">물의 유입<br><small>침투</small></div><div class="arrow">→</div><div class="step">사슬 간격 증가<br><small>팽윤</small></div><div class="arrow">→</div><div class="step">팽윤 평형</div></div>
+<h3>모세관 현상</h3><p>미세 기공에서는 표면장력과 부착력에 의해 물이 이동할 수 있다. PPT에서 다룬 모세관 압력 관계식은 다음과 같다.</p><div class="formula">ΔP = 2γ cosθ / r</div><p class="small">γ: 표면장력, θ: 접촉각, r: 기공 반지름</p>
+<h3>삼투압과 팽윤</h3><p>하이드로젤 내부와 외부의 이온 농도 차이는 물의 유입에 영향을 준다. 물이 유입되면 고분자 사슬 사이의 간격이 증가하며 망상 구조가 팽창한다.</p>
+<h3>탄성력과 팽윤 평형</h3><p>팽창한 고분자 사슬은 엔트로피적 경향에 따라 수축하려 하며, 탄성력은 추가적인 팽창에 저항한다. 물을 끌어들이는 힘과 수축력이 균형을 이루면 팽윤 평형에 도달한다.</p></section>
+<section class="section" id="simulation"><div class="kicker">INTERACTIVE MODEL</div><h2>직접 제작한 팽윤 개념 시뮬레이터</h2>
+<p>이 시뮬레이터는 하이드로젤의 수분 유입과 팽윤에 영향을 주는 요인을 직관적으로 이해하도록 제작한 <b>개념 모델</b>이다. 실제 시료의 측정값이나 플로리–레너 방정식의 수치해석 결과가 아니라, PPT에서 설명한 원리의 방향성을 시각화한다.</p>
+<div class="sim">
+<div class="control"><label for="water">물 유입 경향</label><output id="wo">보통</output><input id="water" type="range" min="1" max="5" value="3"></div>
+<div class="control"><label for="elastic">팽창에 대한 탄성 저항</label><output id="eo">보통</output><input id="elastic" type="range" min="1" max="5" value="3"></div>
+<div class="visual"><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="gel" id="gel"></div></div>
+<div class="result" id="result" aria-live="polite">물 유입 경향과 탄성 저항이 비슷한 상태입니다.</div><p id="explain">물이 유입되면 망상 구조가 팽창하지만, 고분자 사슬의 수축 경향과 탄성력이 팽창에 저항합니다.</p>
+<p class="small">조작 방법: 두 막대를 각각 움직여 물 유입 경향과 탄성 저항의 상대적 크기를 바꿔 보세요. 도형의 크기와 설명은 두 요인의 관계를 개념적으로 나타냅니다.</p></div>
+<h3>제작 의도</h3><p>하이드로젤의 팽윤은 물이 들어오는 현상만으로 결정되지 않고, 물의 유입을 촉진하는 요인과 고분자 사슬의 수축·탄성 저항이 함께 작용한다. 이를 글로만 설명하면 힘 사이의 관계를 직관적으로 파악하기 어렵다고 판단하여, 두 요인을 사용자가 직접 조절하고 망상 구조의 팽창 정도가 어떻게 달라지는지 볼 수 있도록 구성하였다.</p>
+<h3>시뮬레이터를 통해 알 수 있는 점</h3><p>물 유입 경향이 탄성 저항보다 크면 망상 구조가 더 팽창하는 방향으로 나타나고, 탄성 저항이 커지면 팽창이 제한되는 방향으로 나타난다. 두 요인이 비슷해지면 팽윤이 더 이상 크게 진행되지 않는 평형 상태를 생각할 수 있다. 따라서 하이드로젤의 수분 보유 특성은 물을 끌어들이는 성질뿐 아니라, 팽창을 억제하는 망상 구조의 특성에도 영향을 받는다는 점을 이해할 수 있다.</p>
+<div class="note"><b>모델의 한계</b><br>슬라이더 값은 실제 이온 농도, 표면장력, 탄성률 등의 수치를 뜻하지 않는다. 결과 도형도 정량적인 팽윤비를 예측하지 않으며, 원리의 관계를 설명하기 위한 개념적 시각화이다. PPT에서 수행한 외부 플로리–레너 이론 기반 팽윤 시뮬레이션과는 별개의 자체 제작 모델이다.</div></section>
+<section class="section" id="bio"><div class="kicker">05 · BIOMIMICRY</div><h2>거미줄의 나노구획구조를 모방한 하이드로젤</h2>
+<p>거미줄은 부드러우면서도 쉽게 끊어지지 않는 높은 인성을 지닌다. 조사한 연구에서는 이러한 특성에 거미줄 내부의 나노구획구조가 기여한다는 점에 착안하였다.</p>
+<p>연구진은 거미줄의 나노구획구조를 모방하여 탄닌산을 활용한 역동적 나노구획구조를 하이드로젤에 구현하였다. 탄닌산이 형성하는 풍부한 <b>가역적 수소 결합</b>은 외부 힘으로 구조가 손상된 뒤에도 다시 형성될 수 있어 자가치유에 기여한다.</p>
+<div class="grid"><div class="mini"><span class="tag">구조적 모방</span><p>거미줄의 나노구획구조에서 착안한 하이드로젤 구조</p></div><div class="mini"><span class="tag">화학적 상호작용</span><p>탄닌산이 형성하는 가역적 수소 결합</p></div><div class="mini"><span class="tag">구현된 특성</span><p>부드러움, 높은 인성, 자가치유성, 비팽창성, 전기전도성</p></div></div>
+<h3>응용 가능성</h3><p>해당 연구는 수중 근전도 신호 검출과 방광의 액체 주입·배출 실시간 모니터링 등 의료용 소재로의 활용 가능성을 제시한다.</p></section>
+<section class="section"><div class="kicker">06 · TAKEAWAY</div><h2>탐구를 통해 이해한 점</h2>
+<p>하이드로젤의 수분 흡수에는 수소 결합, 삼투압, 모세관 현상 등 물리·화학적 원리가 복합적으로 작용한다. 또한 고분자의 화학적 조성뿐 아니라 가교 구조와 나노구획구조에 따라서도 수분 흡수성, 인성, 탄성, 자가치유성 등의 특성이 달라질 수 있다.</p>
+<p>거미줄의 구조를 모방한 연구 사례를 통해 자연계의 구조적 특성이 신소재 개발의 설계 원리가 될 수 있음을 확인하였다. 소재의 구조와 기능 사이의 상관관계를 여러 과학 분야의 관점에서 분석하는 것이 신소재공학에서 중요하다는 점을 이해하였다.</p></section>
+<section class="section" id="sources"><div class="kicker">REFERENCES</div><h2>참고 자료</h2><ol class="source">
+<li>사토 겐타로, 『세계사를 바꾼 12가지 신소재』.</li>
+<li>하이드로젤 자료: <a href="http://www.softmaterials.co.kr/hydrogel/" target="_blank" rel="noopener">Soft Materials – Hydrogel</a></li>
+<li>Hydrogel Swelling Dynamics Simulation: <a href="https://www.mysimulator.uk/materials-science/hydrogel-swelling/sim.html" target="_blank" rel="noopener">외부 팽윤 시뮬레이션</a></li>
+<li>김연주(2023), 「생체접착제로 적용하기 위한 다기능성 하이드로겔 개발」, <a href="https://scienceon.kisti.re.kr/srch/selectPORSrchArticle.do?cn=DIKO0016626704" target="_blank" rel="noopener">ScienceON 자료</a></li></ol></section>
+</main><footer>하이드로젤의 구조와 기능을 이해하기 위한 탐구 자료</footer>
 <script>
-const $=x=>document.getElementById(x),cross=$('cross'),salt=$('salt'),hydro=$('hydro');
-function draw(idx,c){let s='<rect width="520" height="270" rx="10" fill="#091726"/>';let scale=.76+idx*.38,cols=6,rows=4,dx=76*scale,dy=52*scale,ox=(520-(cols-1)*dx)/2,oy=(270-(rows-1)*dy)/2,pts=[];
-for(let r=0;r<rows;r++){pts[r]=[];for(let j=0;j<cols;j++)pts[r][j]=[ox+j*dx+(r%2)*7,oy+r*dy]}
-for(let r=0;r<rows;r++)for(let j=0;j<cols;j++){let p=pts[r][j];if(j<cols-1){let q=pts[r][j+1];s+=`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#6baac1" stroke-width="3"/>`}if(r<rows-1){let q=pts[r+1][Math.min(cols-1,j+(r%2?1:0))];s+=`<line x1="${p[0]}" y1="${p[1]}" x2="${q[0]}" y2="${q[1]}" stroke="#6baac1" stroke-width="3"/>`}}
-let stride=c>.68?1:c>.38?2:3;for(let r=0;r<rows;r++)for(let j=0;j<cols;j++){let p=pts[r][j];s+=`<circle cx="${p[0]}" cy="${p[1]}" r="${(r*cols+j)%stride===0?5.5:3.5}" fill="${(r*cols+j)%stride===0?'#f2cb7b':'#76a9ff'}"/>`}
-for(let i=0;i<18;i++)s+=`<circle cx="${24+(i*83)%470}" cy="${18+(i*47)%232}" r="2.8" fill="#65d8e8" opacity=".7"/>`;
-s+='<text x="15" y="255" fill="#b2c2d4" font-size="11">파란 점: 연결점 · 금색 점: 가교점 · 청록색 점: 물 분자 모식도</text>';$('network').innerHTML=s}
-function update(){let c=+cross.value/100,s=+salt.value/100,h=+hydro.value/100; $('co').textContent=cross.value+'%';$('so').textContent=salt.value+'%';$('ho').textContent=hydro.value+'%';
-let idx=Math.max(.12,Math.min(1,(.32+.88*h)*(1-.72*c)*(1-.58*s))),con=Math.min(1,.18+.72*c+.1*(1-h));
-$('swelling').textContent=Math.round(idx*100)+'/100';$('constraint').textContent=Math.round(con*100)+'/100';$('sb').style.width=idx*100+'%';$('cb').style.width=con*100+'%';
-$('state').textContent=idx>.68?'상대적으로 큼':idx>.4?'중간 수준':'상대적으로 작음';$('statehint').textContent='개념 모델의 경향';
-$('interp').textContent=`현재 조건: 가교 밀도 ${Math.round(c*100)}%, 외부 염 농도 ${Math.round(s*100)}%, 친수성 작용기 지표 ${Math.round(h*100)}%. 이 모델에서는 친수성 작용기 지표가 커질수록 팽윤 지수가 증가하고, 가교 밀도 또는 염 농도가 커질수록 감소하도록 설정되어 있습니다.`;draw(idx,c)}
-[cross,salt,hydro].forEach(x=>x.addEventListener('input',update));$('reset').onclick=()=>{cross.value=40;salt.value=20;hydro.value=70;update()};update();
+const w=document.getElementById('water'),e=document.getElementById('elastic'),g=document.getElementById('gel'),r=document.getElementById('result'),x=document.getElementById('explain'),labels=['매우 낮음','낮음','보통','높음','매우 높음'];
+function update(){let a=+w.value,b=+e.value,d=a-b,s=120+((d+4)/8)*85;document.getElementById('wo').textContent=labels[a-1];document.getElementById('eo').textContent=labels[b-1];g.style.setProperty('--gw',s+'px');g.style.setProperty('--gh',s*.7+'px');
+if(d>=2){r.textContent='물 유입 경향이 상대적으로 커서 팽윤이 크게 나타나는 방향입니다.';x.textContent='물이 망상 구조 안으로 더 많이 유입되는 방향으로 작용합니다. 실제 팽윤 정도는 소재의 구조와 조건에 따라 달라집니다.'}
+else if(d<=-2){r.textContent='탄성 저항이 상대적으로 커서 팽창이 제한되는 방향입니다.';x.textContent='고분자 사슬의 수축 경향과 탄성력이 물 유입에 따른 팽창을 억제하는 방향으로 작용합니다.'}
+else{r.textContent='물 유입 경향과 탄성 저항이 비슷한 상태입니다.';x.textContent='물이 유입되면 망상 구조가 팽창하지만, 고분자 사슬의 수축 경향과 탄성력이 팽창에 저항합니다. 두 효과가 균형을 이루면 팽윤 평형에 도달합니다.'}}
+w.addEventListener('input',update);e.addEventListener('input',update);update();
 </script></body></html>
